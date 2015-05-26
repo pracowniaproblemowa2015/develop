@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+    xmlns:security="http://www.springframework.org/schema/security" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <!-- Login API needs to be public so the user can obtain a ticket -->
+    <security:http create-session="stateless" pattern="/api/user/auth" security="none" />
+
+    <!-- Allow retrieving configuration before login -->
+    <security:http create-session="stateless" pattern="/api/config" security="none" />
+
+
+    <security:http create-session="stateless" entry-point-ref="entryPoint">
+        <!-- Allow CORS pre-flight request which is an OPTIONS request. -->
+        <!-- <security:intercept-url pattern="/api/**" access="hasRole('ROLE_USER')" method="GET" />
+        <security:intercept-url pattern="/api/**" access="hasRole('ROLE_USER')" method="POST" />
+        <security:intercept-url pattern="/api/**" access="hasRole('ROLE_USER')" method="PUT" /> -->
+        <security:custom-filter position="PRE_AUTH_FILTER" ref="ticketFilter" />
+        <security:csrf disabled="true"/>
+    </security:http>
+
+    <!-- User is authenticated using Alfresco ticket so need need for a login form entry point -->
+
+    <bean id="entryPoint" class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint" />
+
+    <bean id="ticketFilter" class="com.scheduler.security.TicketFilter">
+        <property name="authenticationManager" ref="authenticationManager" />
+        <property name="authenticationDetailsSource">
+            <bean class="com.scheduler.security.UserAuthenticationDetailsSource" />
+        </property>
+    </bean>
+
+    <bean id="preauthAuthProvider" class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
+        <property name="throwExceptionWhenTokenRejected" value="true" />
+        <property name="preAuthenticatedUserDetailsService">
+            <bean
+                class="org.springframework.security.web.authentication.preauth.PreAuthenticatedGrantedAuthoritiesUserDetailsService" />
+        </property>
+    </bean>
+
+    <security:authentication-manager alias="authenticationManager">
+        <security:authentication-provider ref="preauthAuthProvider" />
+    </security:authentication-manager>
+</beans>

@@ -1,0 +1,7 @@
+.classpath
+.project
+.settings
+target
+backend\/bin
+frontend\/.tmp
+frontend\/app\/scripts\/translations.js

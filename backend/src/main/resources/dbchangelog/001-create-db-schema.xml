@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+	<changeSet id="1" author="lkracon">
+		<comment>Create basic schema for database</comment>
+		<createTable tableName="users">
+			<column name="id" type="int">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="first_name" type="varchar(50)"></column>
+			<column name="last_name" type="varchar(50)" />
+			<column name="email" type="varchar(50)" />
+			<column name="login" type="varchar(50)" />
+			<column name="password" type="varchar(50)" />
+			<column name="role" type="varchar(50)" />
+			<column name="creation_date" type="datetime" />
+			<column name="modification_date" type="datetime" />
+		</createTable>
+
+		<addUniqueConstraint columnNames="login" constraintName="unique_users_login" tableName="users" />
+
+		<createTable tableName="access_token">
+			<column name="id" type="int">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="user_id" type="int">
+				<constraints nullable="false" />
+			</column>
+			<column name="token" type="varchar(40)"></column>
+			<column name="expire" type="datetime" />
+		</createTable>
+
+		<addAutoIncrement columnDataType="int" columnName="id" incrementBy="1" startWith="1" tableName="users" />
+
+		<addAutoIncrement columnDataType="int" columnName="id" incrementBy="1" startWith="1" tableName="access_token" />
+
+		<addForeignKeyConstraint constraintName="fk_access_token_user" baseTableName="access_token"
+			baseColumnNames="user_id" referencedTableName="users" referencedColumnNames="id" />
+	</changeSet>
+
+</databaseChangeLog>

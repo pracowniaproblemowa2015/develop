@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+	<changeSet id="2" author="lkracon">
+		<comment>Add admin user</comment>
+		<insert tableName="users">
+			<column name="first_name">Administrator</column>
+			<column name="last_name">Systemu</column>
+			<column name="email">admin@zmianoustalacz.pl</column>
+			<column name="login">admin</column>
+ 			<column name="password">40f30223ce25c95143aacd02535b796c</column> <!-- pass = admin -->
+			<column name="role">ROLE_ADMIN</column>
+			<column name="creation_date">now()</column>
+			<column name="modification_date">now()</column>
+		</insert>
+	</changeSet>
+
+</databaseChangeLog>
