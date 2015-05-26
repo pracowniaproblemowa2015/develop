@@ -14,9 +14,9 @@
 
     <security:http create-session="stateless" entry-point-ref="entryPoint">
         <!-- Allow CORS pre-flight request which is an OPTIONS request. -->
-        <!-- <security:intercept-url pattern="/api/**" access="hasRole('ROLE_USER')" method="GET" />
+        <security:intercept-url pattern="/api/**" access="hasRole('ROLE_USER')" method="GET" />
         <security:intercept-url pattern="/api/**" access="hasRole('ROLE_USER')" method="POST" />
-        <security:intercept-url pattern="/api/**" access="hasRole('ROLE_USER')" method="PUT" /> -->
+        <security:intercept-url pattern="/api/**" access="hasRole('ROLE_USER')" method="PUT" />
         <security:custom-filter position="PRE_AUTH_FILTER" ref="ticketFilter" />
         <security:csrf disabled="true"/>
     </security:http>
