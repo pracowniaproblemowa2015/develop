@@ -73,9 +73,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 	public Map<Date, Map<ShiftType, List<Nurse>>> getSchedule(List<Nurse> nurses, Date start,
 			Map<Date, Map<ShiftType, List<Nurse>>> lastWeek) {
 		Map<Date, Map<ShiftType, List<Nurse>>> schedule = null;
-		int cnt = 0;
 		do {
-			cnt++;
 			do {
 				schedule = emptyShedule(start, lastWeek);
 				for (Nurse nurse : nurses) {
@@ -87,13 +85,15 @@ public class SchedulerServiceImpl implements SchedulerService {
 				setWeekends(schedule, nurses);
 
 			} while (!twoFreeWeekends(schedule, nurses));
-			setNights(schedule, nurses);
+
+			setNights2(schedule, nurses);
 			setWeeksSets(schedule, nurses);
 		} while (hardConstrainViolation(schedule, nurses));
 
 		nursesWorkingTimeIsOK(schedule, nurses);
 
 		logger.info("Soft constrain 1 points: {}", fromFridayToMondayNoOrMoreThanTwoShifts(schedule, nurses));
+		logger.info("Soft constrain 3 points: {}", nightShiftsShoudBeTwoOrThree(schedule));
 		return schedule;
 	}
 
@@ -127,6 +127,44 @@ public class SchedulerServiceImpl implements SchedulerService {
 		}
 
 		return false;
+	}
+
+	private int nightShiftsShoudBeTwoOrThree(Map<Date, Map<ShiftType, List<Nurse>>> schedule) {
+		List<Date> days = new ArrayList<Date>(schedule.keySet());
+		Collections.sort(days);
+
+		if (schedule.size() / 7 != WEEKS) {
+			int cnt = 0;
+			Iterator<Date> iterator = days.iterator();
+			while (iterator.hasNext()) {
+				iterator.next();
+				iterator.remove();
+				cnt++;
+				if (cnt >= 7) {
+					break;
+				}
+			}
+		}
+		int points = 0;
+		Nurse nurse = null;
+		int cnt = 0;
+		for (Date day : days) {
+			Nurse tmpNurse = schedule.get(day).get(ShiftType.NIGHT).get(0);
+			if (nurse == null) {
+				nurse = tmpNurse;
+				cnt++;
+			} else if (tmpNurse == nurse) {
+				cnt++;
+			} else {
+				if (cnt < 2 || cnt > 3) {
+					points += 1000;
+				}
+				nurse = tmpNurse;
+				cnt = 1;
+			}
+		}
+
+		return points;
 	}
 
 	private int fromFridayToMondayNoOrMoreThanTwoShifts(Map<Date, Map<ShiftType, List<Nurse>>> schedule,
@@ -550,6 +588,21 @@ public class SchedulerServiceImpl implements SchedulerService {
 				if (emptySet.isEmpty()) {
 					break;
 				}
+
+				Calendar cal = Calendar.getInstance();
+				cal.setTime(emptySet.get(0));
+				cal.add(Calendar.DATE, -1);
+				Date dayBefore = cal.getTime();
+				cal.add(Calendar.DATE, -1);
+				Date day2Before = cal.getTime();
+
+				if (schedule.get(dayBefore) != null && schedule.get(dayBefore).get(ShiftType.NIGHT).get(0) != null) {
+					availableNurses.remove(schedule.get(dayBefore).get(ShiftType.NIGHT).get(0));
+				}
+				if (schedule.get(day2Before) != null && schedule.get(day2Before).get(ShiftType.NIGHT).get(0) != null) {
+					availableNurses.remove(schedule.get(day2Before).get(ShiftType.NIGHT).get(0));
+				}
+
 				List<Nurse> filteredNurses = filterNursesWithAvailableShifts(availableNurses, emptySet.size(),
 						emptySet.get(0));
 				if (filteredNurses.isEmpty()) {
@@ -579,161 +632,63 @@ public class SchedulerServiceImpl implements SchedulerService {
 		}
 	}
 
-	private void setNights(Map<Date, Map<ShiftType, List<Nurse>>> schedule, List<Nurse> nurses) {
-		// at this point only Tuesday, Wednesday, and Thursday are empty;
-		ShiftType type = ShiftType.NIGHT;
-
-		Map<Date, List<Date>> emptyShiftSets = getEmptyShiftSets(schedule, type, 3);
-		for (Date weekday : emptyShiftSets.keySet()) {
-			List<Date> nextEmptyShiftSet = emptyShiftSets.get(weekday);
-			List<Nurse> availableNurses = new ArrayList<Nurse>(nurses);
-			for (Date day : nextEmptyShiftSet) {
-				for (ShiftType shift : ShiftType.values()) {
-					availableNurses.removeAll(schedule.get(day).get(shift));
-				}
-			}
-
-			if (filterNursesWithAvailableNightShifts(filterNursesWithAvailableShifts(availableNurses, 3, weekday), 3)
-					.size() >= 1) {
-
-				Nurse nurse1 = getNurseToWorkAtNightAndSubtract(availableNurses, nextEmptyShiftSet.size(), weekday);
-				logger.debug(Arrays.asList(nurse1).toString());
-
-				for (Date day : nextEmptyShiftSet) {
-					schedule.get(day).get(type).set(0, nurse1);
-				}
-			}
-		}
-
-		emptyShiftSets = getEmptyShiftSets(schedule, type, 2);
-		for (Date weekday : emptyShiftSets.keySet()) {
-			List<Date> nextEmptyShiftSet = emptyShiftSets.get(weekday);
-			List<Nurse> availableNurses = new ArrayList<Nurse>(nurses);
-			for (Date day : nextEmptyShiftSet) {
-				for (ShiftType shift : ShiftType.values()) {
-					availableNurses.removeAll(schedule.get(day).get(shift));
-				}
-			}
-
-			if (filterNursesWithAvailableNightShifts(filterNursesWithAvailableShifts(availableNurses, 2, weekday), 2)
-					.size() >= 1) {
-
-				Nurse nurse1 = getNurseToWorkAtNightAndSubtract(availableNurses, nextEmptyShiftSet.size(), weekday);
-				logger.debug(Arrays.asList(nurse1).toString());
-
-				for (Date day : nextEmptyShiftSet) {
-					schedule.get(day).get(type).set(0, nurse1);
-				}
-			}
-		}
-
-		emptyShiftSets = getEmptyShiftSets(schedule, type, 1);
-		for (Date weekday : emptyShiftSets.keySet()) {
-			List<Date> nextEmptyShiftSet = emptyShiftSets.get(weekday);
-			List<Nurse> availableNurses = new ArrayList<Nurse>(nurses);
-			for (Date day : nextEmptyShiftSet) {
-				for (ShiftType shift : ShiftType.values()) {
-					availableNurses.removeAll(schedule.get(day).get(shift));
-				}
-			}
-
-			if (filterNursesWithAvailableNightShifts(filterNursesWithAvailableShifts(availableNurses, 1, weekday), 1)
-					.size() >= 1) {
-
-				Nurse nurse1 = getNurseToWorkAtNightAndSubtract(availableNurses, nextEmptyShiftSet.size(), weekday);
-				logger.debug(Arrays.asList(nurse1).toString());
-
-				for (Date day : nextEmptyShiftSet) {
-					schedule.get(day).get(type).set(0, nurse1);
-				}
-			}
-		}
-	}
-
-	private Map<Date, List<Date>> getEmptyShiftSets(Map<Date, Map<ShiftType, List<Nurse>>> schedule, ShiftType type,
-			int cnt) {
-
-		Calendar cal = Calendar.getInstance();
-		Map<Date, List<Date>> shiftSets = new LinkedHashMap<Date, List<Date>>();
+	private void setNights2(Map<Date, Map<ShiftType, List<Nurse>>> schedule, List<Nurse> nurses) {
 		List<Date> days = new ArrayList<Date>(schedule.keySet());
 		Collections.sort(days);
-		if (cnt == 3) {
-			for (Date firstDay : days) {
-				cal.setTime(firstDay);
-				cal.add(Calendar.DATE, 1);
-				Date secondDay = cal.getTime();
-				cal.add(Calendar.DATE, 1);
-				Date thirdDay = cal.getTime();
 
-				if (schedule.get(firstDay) != null && schedule.get(secondDay) != null && schedule.get(thirdDay) != null) {
-					boolean firstEmpty = true;
-					for (Nurse nurse : schedule.get(firstDay).get(type)) {
-						if (nurse != null) {
-							firstEmpty = false;
+		for (ShiftType type : ShiftType.values()) {
+			if (!type.equals(ShiftType.NIGHT)) {
+				continue;
+			}
+			List<Date> emptySet = new ArrayList<Date>();
+			int maxSet = 2;
+			int lastDay = 0;
+			do {
+				List<Nurse> availableNurses = new ArrayList<Nurse>(nurses);
+				for (int i = lastDay; i < days.size(); i++) {
+					Date day = days.get(i);
+					lastDay = i;
+					if (schedule.get(day).get(type).contains(null)) {
+						emptySet.add(day);
+						if (emptySet.size() >= maxSet) {
+							break;
 						}
-					}
-					boolean secondEmpty = true;
-					for (Nurse nurse : schedule.get(secondDay).get(type)) {
-						if (nurse != null) {
-							secondEmpty = false;
-						}
-					}
-					boolean thirdEmpty = true;
-					for (Nurse nurse : schedule.get(thirdDay).get(type)) {
-						if (nurse != null) {
-							thirdEmpty = false;
-						}
-					}
-					if (firstEmpty && secondEmpty && thirdEmpty) {
-
-						shiftSets.put(firstDay, Arrays.asList(firstDay, secondDay, thirdDay));
+					} else if (!emptySet.isEmpty()) {
+						break;
 					}
 				}
-			}
-		}
-		if (cnt == 2) {
-			for (Date firstDay : schedule.keySet()) {
-				cal.setTime(firstDay);
-				cal.add(Calendar.DATE, 1);
-				Date secondDay = cal.getTime();
-
-				if (schedule.get(firstDay) != null && schedule.get(secondDay) != null) {
-					boolean firstEmpty = true;
-					for (Nurse nurse : schedule.get(firstDay).get(type)) {
-						if (nurse != null) {
-							firstEmpty = false;
-						}
-					}
-					boolean secondEmpty = true;
-					for (Nurse nurse : schedule.get(secondDay).get(type)) {
-						if (nurse != null) {
-							secondEmpty = false;
-						}
-					}
-					if (firstEmpty && secondEmpty) {
-						shiftSets.put(firstDay, Arrays.asList(firstDay, secondDay));
-					}
+				if (emptySet.isEmpty()) {
+					break;
 				}
-			}
-		}
-		if (cnt == 1) {
-			for (Date firstDay : schedule.keySet()) {
-				cal.setTime(firstDay);
-
-				if (schedule.get(firstDay) != null) {
-					boolean firstEmpty = true;
-					for (Nurse nurse : schedule.get(firstDay).get(type)) {
-						if (nurse != null) {
-							firstEmpty = false;
-						}
+				List<Nurse> filteredNurses = filterNursesWithAvailableShifts(
+						filterNursesWithAvailableNightShifts(availableNurses, emptySet.size()), emptySet.size(),
+						emptySet.get(0));
+				if (filteredNurses.isEmpty()) {
+					lastDay++;
+					if (lastDay >= days.size() && maxSet <= 1) {
+						break;
 					}
-					if (firstEmpty) {
-						shiftSets.put(firstDay, Arrays.asList(firstDay));
+					if (lastDay >= days.size()) {
+						maxSet--;
+						emptySet = new ArrayList<Date>();
+						lastDay = 0;
 					}
+					continue;
 				}
-			}
+
+				//
+				Nurse nurse = getNurseToWork(filteredNurses, emptySet.get(0));
+				nurse.subtractHours(emptySet.size(), emptySet.get(0));
+				nurse.setNightShifts(nurse.getNightShifts() + emptySet.size());
+
+				for (Date day : emptySet) {
+					int index = schedule.get(day).get(type).indexOf(null);
+					schedule.get(day).get(type).set(index, nurse);
+				}
+				emptySet = new ArrayList<Date>();
+				lastDay = 0;
+			} while (true);
 		}
-		return shiftSets;
 	}
 
 	private void setWeekends(Map<Date, Map<ShiftType, List<Nurse>>> schedule, List<Nurse> nurses) {
@@ -788,7 +743,6 @@ public class SchedulerServiceImpl implements SchedulerService {
 			Map<ShiftType, List<Nurse>> fridayShift = schedule.get(friday);
 
 			if (i == dates.size() - 1) {
-
 				Nurse nightNurse1 = getNurseToWorkAtNightAndSubtract(availableNurses, 3, friday);
 
 				Nurse earlyNurse1 = getNurseToWorkAndSubtract(availableNurses, 3, friday);
@@ -800,10 +754,11 @@ public class SchedulerServiceImpl implements SchedulerService {
 				Nurse lateNurse1 = getNurseToWorkAndSubtract(availableNurses, 3, friday);
 				Nurse lateNurse2 = getNurseToWorkAndSubtract(availableNurses, 3, friday);
 
+				// fridayShift.put(ShiftType.EARLY, Arrays.asList(earlyNurse1,
+				// earlyNurse2, null));
+				fridayShift.put(ShiftType.DAY, Arrays.asList(dayNurse1, dayNurse2, earlyNurse1));
+				fridayShift.put(ShiftType.LATE, Arrays.asList(lateNurse1, lateNurse2, earlyNurse2));
 				fridayShift.put(ShiftType.NIGHT, Arrays.asList(nightNurse1));
-				fridayShift.put(ShiftType.EARLY, Arrays.asList(earlyNurse1, earlyNurse2, null));
-				fridayShift.put(ShiftType.DAY, Arrays.asList(dayNurse1, dayNurse2, null));
-				fridayShift.put(ShiftType.LATE, Arrays.asList(lateNurse1, lateNurse2, null));
 
 				saturdayShifts.put(ShiftType.EARLY, Arrays.asList(earlyNurse1, earlyNurse2));
 				saturdayShifts.put(ShiftType.DAY, Arrays.asList(dayNurse1, dayNurse2));
@@ -816,7 +771,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 				sundayShift.put(ShiftType.NIGHT, Arrays.asList(nightNurse1));
 			} else if (fridayShift != null && saturdayShifts != null && sundayShift != null && mondayShifts != null) {
 
-				Nurse nightNurse1 = getNurseToWorkAtNightAndSubtract(availableNurses, 3, saturday);
+				Nurse nightNurse1 = getNurseToWorkAtNightAndSubtract(availableNurses, 3, friday);
 
 				Nurse earlyNurse1 = getNurseToWorkAndSubtract(availableNurses, 4, friday);
 				Nurse earlyNurse2 = getNurseToWorkAndSubtract(availableNurses, 4, friday);
@@ -827,9 +782,11 @@ public class SchedulerServiceImpl implements SchedulerService {
 				Nurse lateNurse1 = getNurseToWorkAndSubtract(availableNurses, 4, friday);
 				Nurse lateNurse2 = getNurseToWorkAndSubtract(availableNurses, 4, friday);
 
-				fridayShift.put(ShiftType.EARLY, Arrays.asList(earlyNurse1, earlyNurse2, null));
-				fridayShift.put(ShiftType.DAY, Arrays.asList(dayNurse1, dayNurse2, null));
-				fridayShift.put(ShiftType.LATE, Arrays.asList(lateNurse1, lateNurse2, null));
+				// fridayShift.put(ShiftType.EARLY, Arrays.asList(earlyNurse1,
+				// earlyNurse2, null));
+				fridayShift.put(ShiftType.DAY, Arrays.asList(dayNurse1, dayNurse2, earlyNurse1));
+				fridayShift.put(ShiftType.LATE, Arrays.asList(lateNurse1, lateNurse2, earlyNurse2));
+				fridayShift.put(ShiftType.NIGHT, Arrays.asList(nightNurse1));
 
 				saturdayShifts.put(ShiftType.EARLY, Arrays.asList(earlyNurse1, earlyNurse2));
 				saturdayShifts.put(ShiftType.DAY, Arrays.asList(dayNurse1, dayNurse2));
@@ -844,7 +801,6 @@ public class SchedulerServiceImpl implements SchedulerService {
 				mondayShifts.put(ShiftType.EARLY, Arrays.asList(earlyNurse1, earlyNurse2, null));
 				mondayShifts.put(ShiftType.DAY, Arrays.asList(dayNurse1, dayNurse2, null));
 				mondayShifts.put(ShiftType.LATE, Arrays.asList(lateNurse1, lateNurse2, null));
-				mondayShifts.put(ShiftType.NIGHT, Arrays.asList(nightNurse1));
 
 			}
 		}
