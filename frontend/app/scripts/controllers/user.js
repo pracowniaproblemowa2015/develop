@@ -20,6 +20,10 @@ angular.module('frontendApp').controller('UserCtrl', function($scope, $resource,
     $location.path('/user/' + id);
   };
 
+  $scope.role = function(user){
+    return user.role == 'ROLE_ADMIN' ? 'Admin' : 'Nurse';
+  }
+
   
 
 });

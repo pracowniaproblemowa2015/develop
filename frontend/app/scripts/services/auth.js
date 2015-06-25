@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('frontendApp')
-  .service('Auth', function($http, $cookieStore, Host) {
+  .service('Auth', function($http, $cookieStore, Host, $location, $rootScope) {
     this.user = $cookieStore.get('user');
     this.token = $cookieStore.get('token');
 
@@ -19,10 +19,19 @@ angular.module('frontendApp')
         self.token = data.token;
         $cookieStore.put('user', self.user);
         $cookieStore.put('token', self.token);
+        $rootScope.currentUser = self.user;
         if (success) {
           success();
         }
       }).error(error);
+    }
+
+    this.logout = function(){
+      self.user = null;
+      self.token = null;
+      $cookieStore.remove('user');
+      $cookieStore.remove('token');
+      $location.path("/login");
     }
 
   });

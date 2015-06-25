@@ -104,7 +104,7 @@
                         </li>
                         <li class="divider"></li>
                         <li>
-                            <a href="#"><i class="fa fa-fw fa-power-off"></i> Log Out</a>
+                            <a href="#" ng-click="logout()"><i class="fa fa-fw fa-power-off"></i> Log Out</a>
                         </li>
                     </ul>
                 </li>
@@ -115,8 +115,11 @@
                     <li ng-class="{'active': $state.includes('main.dashboard')}">
                         <a ui-sref="main.dashboard"><i class="fa fa-fw fa-dashboard"></i> Dashboard</a>
                     </li>
-                    <li ng-class="{'active': $state.includes('main.user')}">
+                    <li ng-class="{'active': $state.includes('main.user')}" ng-if="currentUser.role == 'ROLE_ADMIN'">
                         <a ui-sref="main.user.list"><i class="fa fa-fw fa-bar-chart-o"></i> Users</a>
+                    </li>
+                    <li ng-class="{'active': $state.includes('main.schedule')}" ng-if="currentUser.role == 'ROLE_ADMIN'">
+                        <a ui-sref="main.schedule"><i class="fa fa-fw fa-bar-chart-o"></i> Schedule</a>
                     </li>
                 </ul>
             </div>

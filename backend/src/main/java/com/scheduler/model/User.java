@@ -46,6 +46,12 @@ public class User {
 	@Column(name = "modification_date")
 	private Date modificationDate;
 
+	@Column(name = "week_hours")
+	private Integer weekHours;
+
+	@Column(name = "late_shift")
+	private Boolean lateShift;
+
 	public User() {
 		super();
 	}
@@ -127,4 +133,21 @@ public class User {
 	public void setModificationDate(Date modificationDate) {
 		this.modificationDate = modificationDate;
 	}
+
+	public Integer getWeekHours() {
+		return weekHours;
+	}
+
+	public void setWeekHours(Integer weekHours) {
+		this.weekHours = weekHours;
+	}
+
+	public Boolean getLateShift() {
+		return lateShift;
+	}
+
+	public void setLateShift(Boolean lateShift) {
+		this.lateShift = lateShift;
+	}
+
 }

@@ -16,9 +16,12 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
+import com.scheduler.model.Nurse;
 import com.scheduler.service.SchedulerService;
 
+@Service
 public class SchedulerServiceImpl implements SchedulerService {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
@@ -34,11 +37,11 @@ public class SchedulerServiceImpl implements SchedulerService {
 
 		List<Nurse> nurses = new ArrayList<Nurse>();
 		for (int i = 0; i < 12; i++) {
-			nurses.add(new Nurse(36 * WEEKS + 4, 36));
+			nurses.add(new Nurse(i + 1, 36 * WEEKS + 4, 36));
 		}
-		nurses.add(new Nurse(32 * WEEKS + 4, 32));
+		nurses.add(new Nurse(13, 32 * WEEKS + 4, 32));
 		for (int i = 0; i < 3; i++) {
-			nurses.add(new Nurse(20 * WEEKS + 4, 20));
+			nurses.add(new Nurse(i + 14, 20 * WEEKS + 4, 20));
 		}
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
@@ -70,6 +73,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 
 	}
 
+	@Override
 	public Map<Date, Map<ShiftType, List<Nurse>>> getSchedule(List<Nurse> nurses, Date start,
 			Map<Date, Map<ShiftType, List<Nurse>>> lastWeek) {
 		Map<Date, Map<ShiftType, List<Nurse>>> schedule = null;
@@ -310,7 +314,8 @@ public class SchedulerServiceImpl implements SchedulerService {
 			if (schedule.get(dayAfter).get(ShiftType.NIGHT).contains(nurse)
 					&& schedule.get(day2After).get(ShiftType.NIGHT).contains(nurse) && schedule.get(day3After) != null
 					&& schedule.get(day3After).get(ShiftType.NIGHT).contains(nurse)) {
-				logger.info("Hard constrain violation: Nurse {} have more than 3 nights in row after {}", nurse.id, day);
+				logger.info("Hard constrain violation: Nurse {} have more than 3 nights in row after {}",
+						nurse.getId(), day);
 				return false;
 			}
 		}
@@ -329,7 +334,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 					&& (schedule.get(nextDay).get(ShiftType.EARLY).contains(nurse)
 							|| schedule.get(nextDay).get(ShiftType.DAY).contains(nurse) || schedule.get(nextDay)
 							.get(ShiftType.LATE).contains(nurse))) {
-				logger.info("Hard constrain violation: Nurse {} does not have 14 rest after {}", nurse.id, day);
+				logger.info("Hard constrain violation: Nurse {} does not have 14 rest after {}", nurse.getId(), day);
 				return false;
 			}
 
@@ -366,7 +371,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 						|| schedule.get(day2After).get(ShiftType.EARLY).contains(nurse)
 						|| schedule.get(day2After).get(ShiftType.DAY).contains(nurse)
 						|| schedule.get(day2After).get(ShiftType.LATE).contains(nurse)) {
-					logger.info("Hard constrain violation: Nurse {} does not have 42 rest after {}", nurse.id, day);
+					logger.info("Hard constrain violation: Nurse {} does not have 42 rest after {}", nurse.getId(), day);
 					return false;
 				}
 
@@ -398,7 +403,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 				}
 			}
 			if (nights > 3) {
-				logger.info("Hard constrain violation: Nurse {} have {} night shifts", nurse.id, nights);
+				logger.info("Hard constrain violation: Nurse {} have {} night shifts", nurse.getId(), nights);
 				return false;
 			}
 		}
@@ -523,7 +528,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 				}
 			}
 			if (freeWeekends < 2) {
-				logger.info("Hard constrain violation: nurse {} have {} free weekend", nurse.id, freeWeekends);
+				logger.info("Hard constrain violation: nurse {} have {} free weekend", nurse.getId(), freeWeekends);
 				return false;
 			}
 		}
@@ -925,200 +930,6 @@ public class SchedulerServiceImpl implements SchedulerService {
 			}
 		}
 		return nursesWithAvailableShifts;
-	}
-
-	public static class Nurse {
-		private static int lastId = 0;
-		private int id;
-		private int hours = 0;
-		private int hoursLeft = 0;
-		private int nightShifts = 0;
-		private int weekHours = 0;
-		private Map<Date, Map<ShiftType, List<Nurse>>> schedule;
-		private Set<Date> workingDays;
-
-		private Map<Integer, Integer> availableHours;
-
-		private boolean singleOverWorked = false;
-
-		public Nurse(int allhours, int weekHours) {
-			lastId++;
-			this.id = lastId;
-			this.hours = allhours;
-			this.hoursLeft = allhours;
-			this.weekHours = weekHours;
-		}
-
-		public int getHoursLeft() {
-			return hoursLeft;
-		}
-
-		public void setHoursLeft(int hoursLeft) {
-			this.hoursLeft = hoursLeft;
-		}
-
-		public void subtractHours(int shifts, Date day) {
-			this.hoursLeft = this.hoursLeft - (shifts * 8);
-			Calendar cal = Calendar.getInstance();
-			cal.setFirstDayOfWeek(Calendar.MONDAY);
-			for (int i = 0; i < shifts; i++) {
-				cal.setTime(day);
-				cal.add(Calendar.DATE, i);
-				if (availableHours.get(cal.get(Calendar.WEEK_OF_YEAR)) == null) {
-					continue;
-				}
-				availableHours.put(cal.get(Calendar.WEEK_OF_YEAR),
-						availableHours.get(cal.get(Calendar.WEEK_OF_YEAR)) - 8);
-				workingDays.add(cal.getTime());
-			}
-
-		}
-
-		public int getNightShifts() {
-			return nightShifts;
-		}
-
-		public void setNightShifts(int nightShifts) {
-			this.nightShifts = nightShifts;
-		}
-
-		public void resetWeekHours() {
-			this.hoursLeft = this.hours;
-		}
-
-		public int getWeekHours() {
-			return weekHours;
-		}
-
-		public void setWeekHours(int weekendHours) {
-			this.weekHours = weekendHours;
-		}
-
-		public Map<Date, Map<ShiftType, List<Nurse>>> getSchedule() {
-			return schedule;
-		}
-
-		public void setSchedule(Map<Date, Map<ShiftType, List<Nurse>>> schedule) {
-			this.schedule = schedule;
-			Calendar cal = Calendar.getInstance();
-			cal.setFirstDayOfWeek(Calendar.MONDAY);
-			availableHours = new HashMap<Integer, Integer>();
-			for (Date day : schedule.keySet()) {
-				cal.setTime(day);
-				availableHours.put(cal.get(Calendar.WEEK_OF_YEAR), 48);
-			}
-			workingDays = new HashSet<Date>();
-
-		}
-
-		public boolean isSingleOverWorked() {
-			return singleOverWorked;
-		}
-
-		public void setSingleOverWorked(boolean singleOverWorked) {
-			this.singleOverWorked = singleOverWorked;
-		}
-
-		public boolean isWorking(Date day, int shifts) {
-			Calendar cal = Calendar.getInstance();
-			for (int i = 0; i < shifts; i++) {
-				cal.setTime(day);
-				cal.add(Calendar.DATE, i);
-				if (workingDays.contains(cal.getTime())) {
-					return true;
-				}
-				/*
-				 * for (ShiftType type : ShiftType.values()) { if
-				 * (schedule.get(cal.getTime()).get(type).contains(this)) {
-				 * return true; } }
-				 */
-			}
-			return false;
-		}
-
-		public int availableWeekHours(Date weekDay) {
-			Calendar cal = Calendar.getInstance();
-			cal.setFirstDayOfWeek(Calendar.MONDAY);
-			cal.setTime(weekDay);
-			int week = cal.get(Calendar.WEEK_OF_YEAR);
-			return availableHours.get(week);
-
-			/*
-			 * int availableHours = 0; for (Date day : schedule.keySet()) {
-			 * cal.setTime(day); if (cal.get(Calendar.WEEK_OF_YEAR) != week) {
-			 * continue; } for (ShiftType shiftType : ShiftType.values()) { if
-			 * (schedule.get(day).get(shiftType).contains(this)) {
-			 * availableHours += 8; } } } return 48 - availableHours;
-			 */
-
-		}
-
-		public int freeWeekends() {
-			Nurse nurse = this;
-			Map<Date, ShiftType> nurseShedule = new HashMap<Date, ShiftType>();
-			for (Date day : schedule.keySet()) {
-				Map<ShiftType, List<Nurse>> shifts = schedule.get(day);
-				for (ShiftType shiftType : shifts.keySet()) {
-					List<Nurse> nursesOnShift = shifts.get(shiftType);
-					if (nursesOnShift.contains(nurse)) {
-						nurseShedule.put(day, shiftType);
-					}
-				}
-			}
-			Calendar cal = Calendar.getInstance();
-			int freeWeekends = 0;
-			for (Date day : schedule.keySet()) {
-				cal.setTime(day);
-				if (cal.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY) {
-					continue;
-				}
-				ShiftType saturdayShift = nurseShedule.get(day);
-				cal.add(Calendar.DAY_OF_MONTH, -1);
-				ShiftType fridayShift = nurseShedule.get(cal.getTime());
-				cal.add(Calendar.DAY_OF_MONTH, 2);
-				ShiftType sundayShift = nurseShedule.get(cal.getTime());
-				cal.add(Calendar.DAY_OF_MONTH, 1);
-				ShiftType mondayShift = nurseShedule.get(cal.getTime());
-
-				if (freeWeekend(fridayShift, saturdayShift, sundayShift, mondayShift)) {
-					freeWeekends++;
-				}
-			}
-			return freeWeekends;
-		}
-
-		public boolean has42hoursRest(Date day) {
-			Calendar cal = Calendar.getInstance();
-			Nurse nurse = this;
-
-			cal.setTime(day);
-			cal.add(Calendar.DATE, -1);
-			Date dayBefore = cal.getTime();
-			cal.add(Calendar.DATE, -1);
-			Date day2Before = cal.getTime();
-			cal.add(Calendar.DATE, -1);
-			Date day3Before = cal.getTime();
-
-			if (schedule.get(day2Before) != null && schedule.get(dayBefore) != null
-					&& schedule.get(day2Before).get(ShiftType.NIGHT).contains(nurse)
-					&& schedule.get(dayBefore).get(ShiftType.NIGHT).contains(nurse)) {
-				return false;
-			}
-
-			if (schedule.get(day3Before) != null && schedule.get(day2Before) != null
-					&& schedule.get(day3Before).get(ShiftType.NIGHT).contains(nurse)
-					&& schedule.get(day2Before).get(ShiftType.NIGHT).contains(nurse)) {
-				return false;
-			}
-
-			return true;
-		}
-
-		@Override
-		public String toString() {
-			return "Nurse [id=" + id + ", hours=" + hours + ", hoursLeft=" + hoursLeft + "]";
-		}
-
 	}
 
 }

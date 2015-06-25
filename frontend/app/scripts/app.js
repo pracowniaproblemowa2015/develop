@@ -13,6 +13,7 @@ angular.module('frontendApp', ['ngCookies', 'ngResource', 'ngSanitize', 'ui.rout
             templateUrl: "views/main.html"
           },
           'nav-top@main': {
+            controller : "NavCtrl",
             templateUrl: "views/main.nav.top.html"
           }
         }
@@ -52,30 +53,17 @@ angular.module('frontendApp', ['ngCookies', 'ngResource', 'ngSanitize', 'ui.rout
       }
     })
 
-    .state('main.taxi', {
-
-    })
-
-    .state('main.taxi.list', {
-      url: "/taxi",
+    .state('main.schedule', {
+      url: "/schedule",
       views: {
         'content@main': {
-          templateUrl: "views/taxi.list.html",
-          controller: "TaxiCtrl"
+          templateUrl: "views/schedule.html",
+          controller: "ScheduleCtrl"
         }
       }
     })
 
-    .state('main.taxi.single', {
-      url: "/taxi/:id",
-      views: {
-        'content@main': {
-          templateUrl: "views/taxi.single.html",
-          controller: "TaxiSingleCtrl"
-        }
-      }
-    })
-
+    
 
     .state('login', {
       url: "/login",

@@ -144,6 +144,12 @@ public class UserServiceImpl implements UserService {
 		if (user.getRole() != null) {
 			existing.setRole(user.getRole());
 		}
+		if (user.getWeekHours() != null) {
+			existing.setWeekHours(user.getWeekHours());
+		}
+		if (user.getLateShift() != null) {
+			existing.setLateShift(user.getLateShift());
+		}
 		return userRepository.save(existing);
 
 	}

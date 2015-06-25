@@ -1,3 +1,5 @@
 .container-fluid{
 	min-height: 700px;
 }
+
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }

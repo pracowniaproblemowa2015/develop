@@ -1,0 +1,40 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">Schedule</h1>
+        </div>
+    </div>
+    <div class="dash">
+    </div>
+    <div class="row">
+        <div class="col-lg-3">
+        </div>
+        <div class="col-lg-6">
+            <form role="form" ng-submit="generate()">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="btn-group">
+                            <label class="btn btn-primary" ng-model="generateMode" btn-radio="'new'">Generate new</label>
+                            <label class="btn btn-primary" ng-model="generateMode" btn-radio="'withPrevious'">Generate with previous week</label>
+                            <label class="btn btn-primary" ng-model="generateMode" btn-radio="'afterStored'">Generate after stored</label>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <p class="input-group"  style="width:200px;">
+                            <input type="text" class="form-control" datepicker-popup="yyyy/MM/dd"  is-open="opened" datepicker-options="{'starting-day':1}" ng-model="startDate" date-disabled="disabled(date, mode)" ng-required="true" close-text="Close" />
+                            <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                            </span>
+                            </p>
+                        </div>
+                        <button type="submit" class="btn btn-success">Generate</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <pre>{{response}}</pre>
+</div>
