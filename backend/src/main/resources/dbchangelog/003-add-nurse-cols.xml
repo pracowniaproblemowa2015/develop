@@ -9,7 +9,7 @@
 		<comment>Add niurse columns</comment>
 		<addColumn tableName="users">
             <column name="week_hours" type="int" defaultValueNumeric="36"/>
-            <column name="late_shift" type="boolean" defaultValueBoolean="true"/>
+            <column name="late_shift" type="BOOLEAN" defaultValueBoolean="true"/>
         </addColumn>
 	</changeSet>
 

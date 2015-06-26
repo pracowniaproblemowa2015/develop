@@ -10,5 +10,6 @@
 	<include file="classpath:dbchangelog/001-create-db-schema.xml"/>
 	<include file="classpath:dbchangelog/002-add-admin.xml"/>
     <include file="classpath:dbchangelog/003-add-nurse-cols.xml"/>
+    <include file="classpath:dbchangelog/004-add-nurses.xml"/>
 	
 </databaseChangeLog>

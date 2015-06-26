@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+	<changeSet id="4" author="lkracon">
+		<comment>Add nurses</comment>
+        <sql>
+		  INSERT INTO `users` VALUES (3,'Natalia','Baran','nurse@zmianoustalacz.pl','nurse1','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:13:41','2015-06-24 23:13:41',36,FALSE),(4,'Gabriela','Kalinowski','nurse@zmianoustalacz.pl','nurse2','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:14:27','2015-06-24 23:14:27',36,TRUE),(5,'Katarzyna','Szewczyk','nurse@zmianoustalacz.pl','nurse3','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:15:16','2015-06-24 23:15:16',36,TRUE),(6,'Wiktoria','Wójcik','nurse@zmianoustalacz.pl','nurse4','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:16:44','2015-06-24 23:16:44',36,TRUE),(7,'Karolina','Adamska','nurse@zmianoustalacz.pl','nurse5','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:17:27','2015-06-24 23:17:27',36,TRUE),(8,'Malwina','Cieplak','nurse@zmianoustalacz.pl','nurse6','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:17:58','2015-06-24 23:17:58',36,TRUE),(9,'Maria','Mazurek','nurse@zmianoustalacz.pl','nurse7','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:18:32','2015-06-24 23:18:32',36,TRUE),(10,'Julia','Nowakowska','nurse@zmianoustalacz.pl','nurse8','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:19:03','2015-06-24 23:19:03',36,TRUE),(11,'Emilia','Domańska','nurse@zmianoustalacz.pl','nurse9','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:19:50','2015-06-24 23:19:50',36,TRUE),(12,'Zofia','Marszałek','nurse@zmianoustalacz.pl','nurse10','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:20:41','2015-06-24 23:20:41',36,TRUE),(13,'Kinga','Sawicka','nurse@zmianoustalacz.pl','nurse11','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:21:13','2015-06-24 23:21:13',36,TRUE),(14,'Anna','Pawlik','nurse@zmianoustalacz.pl','nurse12','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:21:53','2015-06-24 23:21:53',36,TRUE),(15,'Laura','Głowacka','nurse@zmianoustalacz.pl','nurse13','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:22:27','2015-06-24 23:22:27',32,TRUE),(16,'Maja','Szczepaniak','nurse@zmianoustalacz.pl','nurse14','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:23:00','2015-06-24 23:23:00',20,TRUE),(17,'Maja','Milewska','nurse@zmianoustalacz.pl','nurse15','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:23:36','2015-06-24 23:23:36',20,TRUE),(18,'Hanna','Michalska','nurse@zmianoustalacz.pl','nurse16','4da4041dbac92dfe251e65c69a169bd7','ROLE_USER','2015-06-24 23:25:03','2015-06-24 23:25:03',20,TRUE);
+        </sql>
+	</changeSet>
+
+</databaseChangeLog>
