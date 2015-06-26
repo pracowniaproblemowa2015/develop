@@ -260,6 +260,9 @@
                                 <include>**/*.properties</include>
                             </includes>
                         </resource>
+                        <resource>
+                            <directory>../frontend/dist</directory>
+                        </resource>
                     </webResources>
                 </configuration>
             </plugin>
