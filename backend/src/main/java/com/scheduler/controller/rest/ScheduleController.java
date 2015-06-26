@@ -45,7 +45,7 @@ public class ScheduleController {
 		}
 
 		Map<Date, Map<ShiftType, List<Nurse>>> schedule = scheduleService.getSchedule(nurses, request.getStartDate(),
-				null);
+				request.getLastWeek());
 		int nurseWithoutLateShift = nurseWithoutLateShift(schedule, nurses);
 		int userWithoutLateShift = 0;
 		for (User user : users) {

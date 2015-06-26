@@ -77,7 +77,9 @@ public class SchedulerServiceImpl implements SchedulerService {
 	public Map<Date, Map<ShiftType, List<Nurse>>> getSchedule(List<Nurse> nurses, Date start,
 			Map<Date, Map<ShiftType, List<Nurse>>> lastWeek) {
 		Map<Date, Map<ShiftType, List<Nurse>>> schedule = null;
+		int gcnt = 0;
 		do {
+			int cnt = 0;
 			do {
 				schedule = emptyShedule(start, lastWeek);
 				for (Nurse nurse : nurses) {
@@ -87,12 +89,17 @@ public class SchedulerServiceImpl implements SchedulerService {
 					nurse.setSingleOverWorked(false);
 				}
 				setWeekends(schedule, nurses);
-
-			} while (!twoFreeWeekends(schedule, nurses));
+				cnt++;
+			} while (!twoFreeWeekends(schedule, nurses) && cnt < 1000);
 
 			setNights2(schedule, nurses);
 			setWeeksSets(schedule, nurses);
-		} while (hardConstrainViolation(schedule, nurses));
+			gcnt++;
+		} while (hardConstrainViolation(schedule, nurses) && gcnt < 1000);
+
+		if (gcnt >= 1000) {
+			throw new IllegalStateException();
+		}
 
 		nursesWorkingTimeIsOK(schedule, nurses);
 
